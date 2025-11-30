@@ -1,0 +1,360 @@
+{
+  "classes": [
+    {
+      "id": 0,
+      "canonical_label": "apple_apple_scab",
+      "pv_folders": [
+        "Apple___Apple_scab"
+      ],
+      "pv_count": 630,
+      "field_count": 0
+    },
+    {
+      "id": 1,
+      "canonical_label": "apple_black_rot",
+      "pv_folders": [
+        "Apple___Black_rot"
+      ],
+      "pv_count": 621,
+      "field_count": 0
+    },
+    {
+      "id": 2,
+      "canonical_label": "apple_cedar_apple_rust",
+      "pv_folders": [
+        "Apple___Cedar_apple_rust"
+      ],
+      "pv_count": 275,
+      "field_count": 0
+    },
+    {
+      "id": 3,
+      "canonical_label": "apple_healthy",
+      "pv_folders": [
+        "Apple___healthy"
+      ],
+      "pv_count": 1645,
+      "field_count": 0
+    },
+    {
+      "id": 4,
+      "canonical_label": "background_without_leaves",
+      "pv_folders": [
+        "Background_without_leaves"
+      ],
+      "pv_count": 1143,
+      "field_count": 0
+    },
+    {
+      "id": 5,
+      "canonical_label": "blueberry_healthy",
+      "pv_folders": [
+        "Blueberry___healthy"
+      ],
+      "pv_count": 1502,
+      "field_count": 0
+    },
+    {
+      "id": 6,
+      "canonical_label": "cherry_healthy",
+      "pv_folders": [
+        "Cherry___healthy"
+      ],
+      "pv_count": 854,
+      "field_count": 0
+    },
+    {
+      "id": 7,
+      "canonical_label": "cherry_powdery_mildew",
+      "pv_folders": [
+        "Cherry___Powdery_mildew"
+      ],
+      "pv_count": 1052,
+      "field_count": 0
+    },
+    {
+      "id": 8,
+      "canonical_label": "corn_cercospora_leaf_spot_gray_leaf_spot",
+      "pv_folders": [
+        "Corn___Cercospora_leaf_spot Gray_leaf_spot"
+      ],
+      "pv_count": 513,
+      "field_count": 0
+    },
+    {
+      "id": 9,
+      "canonical_label": "corn_common_rust",
+      "pv_folders": [
+        "Corn___Common_rust"
+      ],
+      "pv_count": 1192,
+      "field_count": 0
+    },
+    {
+      "id": 10,
+      "canonical_label": "corn_healthy",
+      "pv_folders": [
+        "Corn___healthy"
+      ],
+      "pv_count": 1162,
+      "field_count": 0
+    },
+    {
+      "id": 11,
+      "canonical_label": "corn_northern_leaf_blight",
+      "pv_folders": [
+        "Corn___Northern_Leaf_Blight"
+      ],
+      "pv_count": 985,
+      "field_count": 0
+    },
+    {
+      "id": 12,
+      "canonical_label": "grape_black_rot",
+      "pv_folders": [
+        "Grape___Black_rot"
+      ],
+      "pv_count": 1180,
+      "field_count": 0
+    },
+    {
+      "id": 13,
+      "canonical_label": "grape_esca_black_measles",
+      "pv_folders": [
+        "Grape___Esca_(Black_Measles)"
+      ],
+      "pv_count": 1383,
+      "field_count": 0
+    },
+    {
+      "id": 14,
+      "canonical_label": "grape_healthy",
+      "pv_folders": [
+        "Grape___healthy"
+      ],
+      "pv_count": 423,
+      "field_count": 0
+    },
+    {
+      "id": 15,
+      "canonical_label": "grape_leaf_blight_isariopsis_leaf_spot",
+      "pv_folders": [
+        "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)"
+      ],
+      "pv_count": 1076,
+      "field_count": 0
+    },
+    {
+      "id": 16,
+      "canonical_label": "orange_haunglongbing_citrus_greening",
+      "pv_folders": [
+        "Orange___Haunglongbing_(Citrus_greening)"
+      ],
+      "pv_count": 5507,
+      "field_count": 0
+    },
+    {
+      "id": 17,
+      "canonical_label": "peach_bacterial_spot",
+      "pv_folders": [
+        "Peach___Bacterial_spot"
+      ],
+      "pv_count": 2297,
+      "field_count": 0
+    },
+    {
+      "id": 18,
+      "canonical_label": "peach_healthy",
+      "pv_folders": [
+        "Peach___healthy"
+      ],
+      "pv_count": 360,
+      "field_count": 0
+    },
+    {
+      "id": 19,
+      "canonical_label": "pepper,_bell_bacterial_spot",
+      "pv_folders": [
+        "Pepper,_bell___Bacterial_spot"
+      ],
+      "pv_count": 997,
+      "field_count": 0
+    },
+    {
+      "id": 20,
+      "canonical_label": "pepper,_bell_healthy",
+      "pv_folders": [
+        "Pepper,_bell___healthy"
+      ],
+      "pv_count": 1478,
+      "field_count": 0
+    },
+    {
+      "id": 21,
+      "canonical_label": "potato_early_blight",
+      "pv_folders": [
+        "Potato___Early_blight"
+      ],
+      "pv_count": 1000,
+      "field_count": 0
+    },
+    {
+      "id": 22,
+      "canonical_label": "potato_healthy",
+      "pv_folders": [
+        "Potato___healthy"
+      ],
+      "pv_count": 152,
+      "field_count": 0
+    },
+    {
+      "id": 23,
+      "canonical_label": "potato_late_blight",
+      "pv_folders": [
+        "Potato___Late_blight"
+      ],
+      "pv_count": 1000,
+      "field_count": 0
+    },
+    {
+      "id": 24,
+      "canonical_label": "raspberry_healthy",
+      "pv_folders": [
+        "Raspberry___healthy"
+      ],
+      "pv_count": 371,
+      "field_count": 0
+    },
+    {
+      "id": 25,
+      "canonical_label": "soybean_healthy",
+      "pv_folders": [
+        "Soybean___healthy"
+      ],
+      "pv_count": 5090,
+      "field_count": 0
+    },
+    {
+      "id": 26,
+      "canonical_label": "squash_powdery_mildew",
+      "pv_folders": [
+        "Squash___Powdery_mildew"
+      ],
+      "pv_count": 1835,
+      "field_count": 0
+    },
+    {
+      "id": 27,
+      "canonical_label": "strawberry_healthy",
+      "pv_folders": [
+        "Strawberry___healthy"
+      ],
+      "pv_count": 456,
+      "field_count": 0
+    },
+    {
+      "id": 28,
+      "canonical_label": "strawberry_leaf_scorch",
+      "pv_folders": [
+        "Strawberry___Leaf_scorch"
+      ],
+      "pv_count": 1109,
+      "field_count": 0
+    },
+    {
+      "id": 29,
+      "canonical_label": "tomato_bacterial_spot",
+      "pv_folders": [
+        "Tomato___Bacterial_spot"
+      ],
+      "pv_count": 2127,
+      "field_count": 0
+    },
+    {
+      "id": 30,
+      "canonical_label": "tomato_early_blight",
+      "pv_folders": [
+        "Tomato___Early_blight"
+      ],
+      "pv_count": 1000,
+      "field_count": 0
+    },
+    {
+      "id": 31,
+      "canonical_label": "tomato_healthy",
+      "pv_folders": [
+        "Tomato___healthy"
+      ],
+      "pv_count": 1591,
+      "field_count": 0
+    },
+    {
+      "id": 32,
+      "canonical_label": "tomato_late_blight",
+      "pv_folders": [
+        "Tomato___Late_blight"
+      ],
+      "pv_count": 1909,
+      "field_count": 0
+    },
+    {
+      "id": 33,
+      "canonical_label": "tomato_leaf_mold",
+      "pv_folders": [
+        "Tomato___Leaf_Mold"
+      ],
+      "pv_count": 952,
+      "field_count": 0
+    },
+    {
+      "id": 34,
+      "canonical_label": "tomato_septoria_leaf_spot",
+      "pv_folders": [
+        "Tomato___Septoria_leaf_spot"
+      ],
+      "pv_count": 1771,
+      "field_count": 0
+    },
+    {
+      "id": 35,
+      "canonical_label": "tomato_spider_mites_two_spotted_spider_mite",
+      "pv_folders": [
+        "Tomato___Spider_mites Two-spotted_spider_mite"
+      ],
+      "pv_count": 1676,
+      "field_count": 0
+    },
+    {
+      "id": 36,
+      "canonical_label": "tomato_target_spot",
+      "pv_folders": [
+        "Tomato___Target_Spot"
+      ],
+      "pv_count": 1404,
+      "field_count": 0
+    },
+    {
+      "id": 37,
+      "canonical_label": "tomato_tomato_mosaic_virus",
+      "pv_folders": [
+        "Tomato___Tomato_mosaic_virus"
+      ],
+      "pv_count": 373,
+      "field_count": 0
+    },
+    {
+      "id": 38,
+      "canonical_label": "tomato_tomato_yellow_leaf_curl_virus",
+      "pv_folders": [
+        "Tomato___Tomato_Yellow_Leaf_Curl_Virus"
+      ],
+      "pv_count": 5357,
+      "field_count": 0
+    }
+  ],
+  "meta": {
+    "source": "PlantVillage",
+    "description": "Unified label mapping for PlantVillage + future field datasets",
+    "version": 1
+  }
+}
