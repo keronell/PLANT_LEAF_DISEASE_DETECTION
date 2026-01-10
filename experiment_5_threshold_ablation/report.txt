@@ -1,0 +1,124 @@
+======================================================================
+EXPERIMENT 5: THRESHOLD ABLATION REPORT
+======================================================================
+
+OBJECTIVE
+----------------------------------------------------------------------
+Quantify how pseudo-label quality vs quantity affects domain adaptation.
+Test whether relaxing confidence threshold improves rare/zero F1 classes.
+Maintain PlantVillage performance while improving Field performance.
+
+1. PSEUDO-LABEL STATISTICS
+----------------------------------------------------------------------
+Threshold    Retained     Total        Retention %    
+----------------------------------------------------------------------
+T=0.85      2046         3712         55.12          
+T=0.90      1819         3712         49.00          
+T=0.95      1445         3712         38.93          
+
+Per-Class Pseudo-Label Counts (Focus on Tomato Classes):
+----------------------------------------------------------------------
+Class                                              T=0.85 T=0.90 T=0.95
+----------------------------------------------------------------------
+tomato_healthy                                           0       0       0
+tomato_tomato_mosaic_virus                               0       0       0
+tomato_tomato_yellow_leaf_curl_virus                     0       0       0
+
+Other classes in pseudo-labels:
+apple_apple_scab                                        11       9       9
+background_without_leaves                              424     382     278
+cherry_healthy                                          12       8       8
+cherry_powdery_mildew                                    5       1       1
+corn_cercospora_leaf_spot_gray_leaf_spot               469     412     347
+corn_common_rust                                        45      33      15
+corn_healthy                                           628     586     511
+corn_northern_leaf_blight                              185     175     135
+grape_healthy                                           11       7       3
+peach_bacterial_spot                                     9       5       4
+pepper,_bell_bacterial_spot                              6       4       4
+pepper,_bell_healthy                                    13      10       8
+squash_powdery_mildew                                    9       5       4
+strawberry_healthy                                       3       0       0
+strawberry_leaf_scorch                                 172     141      83
+tomato_late_blight                                      43      40      35
+tomato_leaf_mold                                         1       1       0
+
+2. PERFORMANCE COMPARISON
+----------------------------------------------------------------------
+
+A) PlantVillage Test Set (All Classes):
+Model                Accuracy     Macro F1     Change from Teacher 
+----------------------------------------------------------------------
+Teacher              0.9893       0.9871       (baseline)          
+Student T=0.85    0.9859       0.9828       F1: -0.0042, Acc: -0.0034
+Student T=0.90    0.9906       0.9886       F1: +0.0015, Acc: +0.0013
+Student T=0.95    0.9914       0.9892       F1: +0.0022, Acc: +0.0021
+
+B) Field Test Set (Intersection Classes Only):
+Model                Accuracy     Macro F1     Change from Teacher 
+----------------------------------------------------------------------
+Teacher              0.1347       0.0307       (baseline)          
+Student T=0.85    0.1336       0.0304       F1: -0.0003, Acc: -0.0011
+Student T=0.90    0.1584       0.0342       F1: +0.0035, Acc: +0.0237
+Student T=0.95    0.1670       0.0348       F1: +0.0041, Acc: +0.0323
+
+C) Per-Class F1 Scores for Target Rare Classes (Field Test Set):
+----------------------------------------------------------------------
+Class                                              Teacher      T=0.85 T=0.90 T=0.95
+----------------------------------------------------------------------
+tomato_healthy                                     0.0000        0.0000  0.0000  0.0000
+tomato_tomato_mosaic_virus                         0.0000        0.0000  0.0000  0.0000
+tomato_tomato_yellow_leaf_curl_virus               0.0000        0.0000  0.0000  0.0000
+
+All intersection classes:
+corn_cercospora_leaf_spot_gray_leaf_spot           0.1756        0.1400  0.1500  0.1551
+corn_common_rust                                   0.0000        0.0000  0.0000  0.0000
+corn_healthy                                       0.2450        0.2586  0.2849  0.2803
+corn_northern_leaf_blight                          0.1934        0.1798  0.2153  0.2267
+tomato_healthy                                     0.0000        0.0000  0.0000  0.0000
+tomato_tomato_mosaic_virus                         0.0000        0.0000  0.0000  0.0000
+tomato_tomato_yellow_leaf_curl_virus               0.0000        0.0000  0.0000  0.0000
+
+3. ANALYSIS AND INTERPRETATION
+----------------------------------------------------------------------
+
+Primary Success Criterion: Field Macro-F1 improves over Teacher AND over T=0.90
+  ✗ T=0.85: Field F1 does not improve over Teacher (-0.0003)
+  ✓ T=0.95: Field F1 improves over Teacher (+0.0041) AND over T=0.90 (+0.0006)
+
+Secondary Success Criterion: At least one tomato class moves from F1=0 → F1>0
+  ✗ T=0.85: No tomato classes improved from F1=0
+  ✗ T=0.90: No tomato classes improved from F1=0
+  ✗ T=0.95: No tomato classes improved from F1=0
+
+Guardrail: PV Macro-F1 drop must be ≤ 0.01 absolute
+  ✓ T=0.85: PV F1 change = -0.0042 (acceptable)
+  ✓ T=0.90: PV F1 change = +0.0015 (acceptable)
+  ✓ T=0.95: PV F1 change = +0.0022 (acceptable)
+
+4. EXPECTED INTERPRETATION
+----------------------------------------------------------------------
+
+Best Threshold: T=0.95
+Interpretation: T=0.95 best → Pseudo-label noise is harmful; quality dominates.
+Higher confidence threshold reduces noise, leading to better adaptation.
+
+5. SUMMARY TABLE
+----------------------------------------------------------------------
+Threshold    Retention %     PV F1        Field F1     Field Δ      PV Δ         Status              
+----------------------------------------------------------------------
+Teacher      N/A             0.9871       0.0307       0.0000       0.0000       baseline            
+T=0.85     55.12           0.9828       0.0304       -0.0003     -0.0042     FAIL (no improve)   
+T=0.90     49.00           0.9886       0.0342       +0.0035     +0.0015     SUCCESS             
+T=0.95     38.93           0.9892       0.0348       +0.0041     +0.0022     SUCCESS             
+
+6. FILES GENERATED
+----------------------------------------------------------------------
+  - student_T085.pt: d:\Programming\Seminar_Project\PLANT_LEAF_DISEASE_DETECTION\models\efficientnet_b0_student_T085.pt
+  - pseudo_labeled_field_T085.csv: d:\Programming\Seminar_Project\PLANT_LEAF_DISEASE_DETECTION\experiment_5_threshold_ablation\pseudo_labeled_field_T085.csv
+  - student_T090.pt: (from Experiment 4)
+  - student_T095.pt: d:\Programming\Seminar_Project\PLANT_LEAF_DISEASE_DETECTION\models\efficientnet_b0_student_T095.pt
+  - pseudo_labeled_field_T095.csv: d:\Programming\Seminar_Project\PLANT_LEAF_DISEASE_DETECTION\experiment_5_threshold_ablation\pseudo_labeled_field_T095.csv
+  - confusion_matrices_comparison.png: d:\Programming\Seminar_Project\PLANT_LEAF_DISEASE_DETECTION\experiment_5_threshold_ablation\confusion_matrices_comparison.png
+  - confusion_T095.png, confusion_T090.png, confusion_T085.png: d:\Programming\Seminar_Project\PLANT_LEAF_DISEASE_DETECTION\experiment_5_threshold_ablation
+  - report.txt: d:\Programming\Seminar_Project\PLANT_LEAF_DISEASE_DETECTION\experiment_5_threshold_ablation\report.txt

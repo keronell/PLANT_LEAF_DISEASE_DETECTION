@@ -1,0 +1,12 @@
+EXPERIMENT 3: AUGMENTATION COMPARISON SUMMARY
+======================================================================
+
+In-Domain (PlantVillage Test):
+  Baseline F1: 0.9871
+  Field-Style F1: 0.9571
+  Change: -0.0300
+
+Out-of-Domain (Field Dataset):
+  Baseline F1: 0.0212
+  Field-Style F1: 0.0189
+  Improvement: -0.0022 (-10.6%)

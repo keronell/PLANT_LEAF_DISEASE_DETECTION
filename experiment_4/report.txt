@@ -1,0 +1,73 @@
+======================================================================
+EXPERIMENT 4: TEACHER-STUDENT PSEUDO-LABELING REPORT
+======================================================================
+
+1. PSEUDO-LABELING STATISTICS
+----------------------------------------------------------------------
+Confidence threshold used: 0.9
+Total unlabeled field images: 3712
+High-confidence pseudo-labels kept: 1819
+Retention rate: 49.00%
+
+Pseudo-labels per class:
+  apple_apple_scab: 9
+  background_without_leaves: 382
+  cherry_healthy: 8
+  cherry_powdery_mildew: 1
+  corn_cercospora_leaf_spot_gray_leaf_spot: 412
+  corn_common_rust: 33
+  corn_healthy: 586
+  corn_northern_leaf_blight: 175
+  grape_healthy: 7
+  peach_bacterial_spot: 5
+  pepper,_bell_bacterial_spot: 4
+  pepper,_bell_healthy: 10
+  squash_powdery_mildew: 5
+  strawberry_leaf_scorch: 141
+  tomato_late_blight: 40
+  tomato_leaf_mold: 1
+
+2. TRAINING CONFIGURATION
+----------------------------------------------------------------------
+Teacher model: Baseline augmentation on PlantVillage only
+Student model: Initialized from teacher, trained on combined dataset
+Training ratio: 70% PV / 30% pseudo-field
+Student learning rate: 1e-4 (lower than teacher's 3e-4)
+Student max epochs: 15
+
+3. EVALUATION RESULTS
+----------------------------------------------------------------------
+
+A) PlantVillage Test Set (All Classes):
+  Teacher - Accuracy: 0.9893, Macro F1: 0.9871
+  Student - Accuracy: 0.9906, Macro F1: 0.9886
+  Change   - Accuracy: +0.0013, Macro F1: +0.0015
+
+B) Field Test Set (Intersection Classes Only):
+  Teacher - Accuracy: 0.1347, Macro F1: 0.0307
+  Student - Accuracy: 0.1584, Macro F1: 0.0342
+  Change   - Accuracy: +0.0237, Macro F1: +0.0035
+
+Per-Class F1 Scores (Field Test Set):
+  corn_cercospora_leaf_spot_gray_leaf_spot          : Teacher=0.1756, Student=0.1500, Change=-0.0256
+  corn_common_rust                                  : Teacher=0.0000, Student=0.0000, Change=+0.0000
+  corn_healthy                                      : Teacher=0.2450, Student=0.2849, Change=+0.0399
+  corn_northern_leaf_blight                         : Teacher=0.1934, Student=0.2153, Change=+0.0219
+  tomato_healthy                                    : Teacher=0.0000, Student=0.0000, Change=+0.0000
+  tomato_tomato_mosaic_virus                        : Teacher=0.0000, Student=0.0000, Change=+0.0000
+  tomato_tomato_yellow_leaf_curl_virus              : Teacher=0.0000, Student=0.0000, Change=+0.0000
+
+4. SUCCESS CRITERION
+----------------------------------------------------------------------
+✓ SUCCESS: Student improves Field macro-F1 without catastrophic PV collapse
+  Field F1 improvement: +0.0035
+  PV F1 change: +0.0015 (acceptable)
+
+5. FILES GENERATED
+----------------------------------------------------------------------
+  - teacher_model.pt: d:\Programming\Seminar_Project\PLANT_LEAF_DISEASE_DETECTION\models\efficientnet_b0_baseline_aug.pt
+  - student_model.pt: d:\Programming\Seminar_Project\PLANT_LEAF_DISEASE_DETECTION\models\efficientnet_b0_student.pt
+  - pseudo_labeled_field.csv: d:\Programming\Seminar_Project\PLANT_LEAF_DISEASE_DETECTION\experiment_4\pseudo_labeled_field.csv
+  - confusion_matrices_field_dataset.png: d:\Programming\Seminar_Project\PLANT_LEAF_DISEASE_DETECTION\experiment_4\confusion_matrices_field_dataset.png
+  - confidence_histogram.png: d:\Programming\Seminar_Project\PLANT_LEAF_DISEASE_DETECTION\experiment_4\confidence_histogram.png
+  - report.txt: d:\Programming\Seminar_Project\PLANT_LEAF_DISEASE_DETECTION\experiment_4\report.txt
