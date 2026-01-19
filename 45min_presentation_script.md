@@ -11,16 +11,16 @@
 
 ## **PRESENTATION TIMELINE (45 minutes)**
 
-| Section                                | Time            | Slides |
-| -------------------------------------- | --------------- | ------ |
-| 1. Title & Research Question           | 2 min           | 2      |
-| 2. Background & Motivation             | 5 min           | 3      |
-| 3. Problem Statement                   | 8 min           | 4      |
-| 4. Supervised vs Semi-Supervised Learning | 12 min       | 6      |
-| 5. Methodology & Framework             | 10 min          | 6      |
-| 6. Experimental Results                | 5 min           | 3      |
-| 7. Analysis & Discussion               | 2 min           | 2      |
-| **Q&A**                          | **1 min** | -      |
+| Section                                   | Time            | Slides |
+| ----------------------------------------- | --------------- | ------ |
+| 1. Title & Research Question              | 2 min           | 2      |
+| 2. Background & Motivation                | 5 min           | 3      |
+| 3. Problem Statement                      | 8 min           | 4      |
+| 4. Supervised vs Semi-Supervised Learning | 12 min          | 6      |
+| 5. Methodology & Framework                | 10 min          | 6      |
+| 6. Experimental Results                   | 5 min           | 3      |
+| 7. Analysis & Discussion                  | 2 min           | 2      |
+| **Q&A**                             | **1 min** | -      |
 
 ---
 
@@ -302,7 +302,8 @@ Machine Learning Approaches
 └── Reinforcement Learning (reward-based)
 ```
 
-**Our Project:** 
+**Our Project:**
+
 - **Experiments 1-3:** Supervised Learning (Classification)
 - **Experiments 4-5:** Semi-Supervised Learning (Pseudo-labeling)
 
@@ -331,6 +332,7 @@ Labeled Images (X, y) → EfficientNet-B0 → Fine-tuning → Disease Classifier
 ```
 
 **Experiment 3: Augmentation Comparison**
+
 - Baseline vs Field-Style augmentation
 - Trained on PlantVillage only (no field data)
 - Tested generalization to field images
@@ -390,6 +392,7 @@ Labeled Images (X, y) → EfficientNet-B0 → Fine-tuning → Disease Classifier
 **Content:**
 
 **The Challenge:**
+
 - Limited labeled field data (only 4.6K training samples)
 - Abundant unlabeled field images available
 - Need to leverage unlabeled data for domain adaptation
@@ -410,11 +413,13 @@ Step 3: Train Student Model
 ```
 
 **Experiment 4: Teacher-Student Framework**
+
 - Teacher: Baseline model on PV only
 - Pseudo-labels: 1,819 high-confidence field images (49% retention)
 - Student: Trained on combined dataset
 
 **Experiment 5: Threshold Ablation**
+
 - Tested thresholds: T=0.85, 0.90, 0.95
 - Found T=0.95 optimal (quality > quantity)
 
@@ -432,23 +437,25 @@ Step 3: Train Student Model
 
 **Content:**
 
-| Aspect                | Supervised (Exp 1-3)        | Semi-Supervised (Exp 4-5)      |
-| --------------------- | --------------------------- | ------------------------------ |
-| **Data**        | Labeled (X, y) only        | Labeled + Unlabeled (X, y + X) |
-| **Field Data**  | Requires labeled field data | Uses unlabeled field images    |
-| **Approach**    | Fine-tuning with labels     | Pseudo-labeling                |
-| **Results**      | 99.7% PV, 60-86% Field      | 98.9% PV, 3.5% Field (limited) |
-| **Best Use**    | When labeled field data available | When unlabeled data abundant |
-| **Our Project** | ✅ Experiments 1-3         | ✅ Experiments 4-5            |
+| Aspect                | Supervised (Exp 1-3)              | Semi-Supervised (Exp 4-5)      |
+| --------------------- | --------------------------------- | ------------------------------ |
+| **Data**        | Labeled (X, y) only               | Labeled + Unlabeled (X, y + X) |
+| **Field Data**  | Requires labeled field data       | Uses unlabeled field images    |
+| **Approach**    | Fine-tuning with labels           | Pseudo-labeling                |
+| **Results**     | 99.7% PV, 60-86% Field            | 98.9% PV, 3.5% Field (limited) |
+| **Best Use**    | When labeled field data available | When unlabeled data abundant   |
+| **Our Project** | ✅ Experiments 1-3                | ✅ Experiments 4-5             |
 
 **Why We Used Both:**
 
 **Supervised (Experiments 1-2):**
+
 - ✅ Labeled field data available (4.6K samples)
 - ✅ Achieved excellent results (86% F1 on FieldPlant)
 - ✅ Primary successful approach
 
 **Semi-Supervised (Experiments 4-5):**
+
 - ✅ Explored leveraging unlabeled field images
 - ✅ Teacher-student framework tested
 - ⚠️ Limited improvement (3.5% Field F1 vs 86% supervised)
@@ -478,27 +485,33 @@ Step 3: Train Student Model
 **Why Not Primary Approach:**
 
 ❌ **No Specific Predictions:**
+
 - Unsupervised gives "Group 1" not "Tomato Early Blight"
 - Farmers need disease names, not cluster labels
 
 ❌ **Categories Are Known:**
+
 - We have 39 defined disease classes
 - No need to discover unknown patterns
 
 ❌ **Labeled Data Available:**
+
 - PlantVillage has 49K labeled images
 - Can use supervised/semi-supervised instead
 
 ❌ **Evaluation Challenges:**
+
 - How do you measure unsupervised performance?
 - No ground truth for clusters
 
 **Our Approach:**
+
 - ✅ **Supervised:** When labeled data available (Experiments 1-2)
 - ✅ **Semi-Supervised:** When unlabeled data abundant (Experiments 4-5)
 - ❌ **Unsupervised:** Not needed - we have labels and need specific predictions
 
 **Future Research:**
+
 - Unsupervised pre-training for feature learning
 - Anomaly detection for unknown diseases
 - Active learning for efficient annotation
@@ -692,33 +705,39 @@ ImageNet Features → Plant Disease Features → Disease Classifier
 **Domain Adaptation Techniques for Semi-Supervised:**
 
 **1. Confidence-Based Filtering:**
+
 - Only keep pseudo-labels with confidence ≥ threshold
 - Thresholds tested: 0.85, 0.90, 0.95
 - **Finding:** T=0.95 optimal (quality > quantity)
 - Reduces noise from incorrect teacher predictions
 
 **2. Weight Initialization:**
+
 - Student initialized from teacher weights
 - Preserves learned features from PV domain
 - Enables efficient adaptation to field domain
 
 **3. Balanced Sampling:**
+
 - 70% PV (labeled) / 30% pseudo-field per batch
 - Prevents overfitting to noisy pseudo-labels
 - Maintains strong PV performance
 
 **4. Conservative Training:**
+
 - Lower learning rate (1e-4 vs 3e-4)
 - Lighter augmentation on pseudo-labels
 - Early stopping on PV validation
 - Protects against pseudo-label noise
 
 **5. Threshold Ablation:**
+
 - Systematic study of quality vs quantity trade-off
 - Tested multiple confidence thresholds
 - Identified optimal balance point
 
 **Key Differences from Supervised:**
+
 - Uses unlabeled field data (vs labeled)
 - Pseudo-labels from teacher (vs ground truth)
 - Lower learning rate (vs standard)
@@ -739,12 +758,14 @@ ImageNet Features → Plant Disease Features → Disease Classifier
 **SUPERVISED LEARNING EXPERIMENTS:**
 
 **Experiment 1: Baseline Fine-Tuning**
+
 - Combined datasets (PV + FieldPlant labeled)
 - Basic augmentation
 - 5 epochs
 - Standard learning rate
 
 **Experiment 2: Quick Wins Strategy**
+
 - Aggressive field augmentation
 - 60/40 domain-balanced batches
 - 12 epochs, layer-wise LR
@@ -752,6 +773,7 @@ ImageNet Features → Plant Disease Features → Disease Classifier
 - **Result:** 99.7% PV, 59.7% Plant_doc, 86.0% FieldPlant
 
 **Experiment 3: Augmentation Comparison**
+
 - Baseline vs Field-Style augmentation
 - Trained on PV only (no field data)
 - Tested generalization
@@ -760,12 +782,14 @@ ImageNet Features → Plant Disease Features → Disease Classifier
 **SEMI-SUPERVISED LEARNING EXPERIMENTS:**
 
 **Experiment 4: Teacher-Student Pseudo-Labeling**
+
 - Teacher: Baseline model on PV only
 - Pseudo-labels: High-confidence (≥0.90) on unlabeled field images
 - Student: Trained on PV + pseudo-labeled field (70/30 ratio)
 - **Result:** 98.9% PV, 3.4% Field F1 (limited improvement)
 
 **Experiment 5: Threshold Ablation**
+
 - Tested confidence thresholds: 0.85, 0.90, 0.95
 - **Finding:** T=0.95 optimal (quality > quantity)
 - **Result:** Best Field F1 = 3.5% (still limited)
@@ -826,17 +850,18 @@ ImageNet Features → Plant Disease Features → Disease Classifier
 
 | Experiment            | Main F1 | Plant_doc F1 | FieldPlant F1 | Approach        |
 | --------------------- | ------- | ------------ | ------------- | --------------- |
-| **Baseline**    | 98.9%   | 6.9% ❌      | 2.9% ❌       | Basic fine-tune |
-| **Quick Wins**  | 99.7%   | 59.7% ✅     | 86.0% ✅      | Domain adapt     |
-| **Progressive** | 99.8%   | 61.3% ✅     | 83.2% ✅      | Progressive     |
+| **Baseline**    | 98.9%   | 6.9%         | 2.9%          | Basic fine-tune |
+| **Quick Wins**  | 99.7%   | 59.7%        | 86.0%         | Domain adapt    |
+| **Progressive** | 99.8%   | 61.3%        | 83.2%         | Progressive     |
 
 **SEMI-SUPERVISED LEARNING RESULTS:**
 
-| Experiment            | Main F1 | Field F1     | Approach              |
-| --------------------- | ------- | ------------ | --------------------- |
-| **Teacher**     | 98.9%   | 3.1% ❌      | PV only (baseline)   |
-| **Student T=0.90** | 98.9%   | 3.4% ⚠️     | Pseudo-labeling      |
-| **Student T=0.95** | 98.9%   | 3.5% ⚠️     | Best threshold       |
+| Experiment               | Main F1 | Field F1 | Approach           |
+| ------------------------ | ------- | -------- | ------------------ |
+| **Teacher**        | 98.9%   | 3.1%     | PV only (baseline) |
+| **Student T=0.85** | 98.3%   | 3.0%     | Pseudo-labeling    |
+| **Student T=0.90** | 98.9%   | 3.4%     | Pseudo-labeling    |
+| **Student T=0.95** | 98.9%   | 3.5%     | Best threshold     |
 
 **Key Findings:**
 
@@ -949,17 +974,20 @@ Result: 59.7% F1 ✅ (Useful performance)
 **Supervised Learning Success (Experiments 1-2):**
 
 **1. Labeled Field Data Available:**
+
 - 4.6K labeled field training samples
 - Direct supervision signal
 - No label noise
 
 **2. Effective Domain Adaptation:**
+
 - Aggressive field augmentation
 - Domain-balanced sampling (60/40)
 - Multi-domain validation
 - **Result:** 86% F1 on FieldPlant
 
 **3. Transfer Learning Power:**
+
 - ImageNet pre-training
 - Fine-tuning adapts efficiently
 - Strong feature learning
@@ -967,21 +995,25 @@ Result: 59.7% F1 ✅ (Useful performance)
 **Semi-Supervised Limitations (Experiments 4-5):**
 
 **1. Pseudo-Label Quality:**
+
 - Teacher model has low field accuracy (3.1%)
 - Pseudo-labels contain noise
 - Limited improvement (3.5% F1)
 
 **2. Limited Unlabeled Data Benefit:**
+
 - Only 1,819-2,046 pseudo-labels retained
 - Quality threshold filtering reduces coverage
 - Not enough to overcome domain shift
 
 **3. Teacher Model Weakness:**
+
 - Teacher trained on PV only
 - Poor field generalization
 - Pseudo-labels inherit this weakness
 
 **Takeaway:**
+
 - **Supervised:** Labeled field data + domain adaptation = 86% F1 ✅
 - **Semi-Supervised:** Pseudo-labels from weak teacher = 3.5% F1 ⚠️
 - **Conclusion:** When labeled field data available, supervised is superior
