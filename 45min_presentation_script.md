@@ -17,7 +17,7 @@
 | 2. Background & Motivation             | 5 min           | 3      |
 | 3. Problem Statement                   | 8 min           | 4      |
 | 4. Supervised vs Semi-Supervised Learning | 12 min       | 6      |
-| 5. Methodology & Framework             | 10 min          | 5      |
+| 5. Methodology & Framework             | 10 min          | 6      |
 | 6. Experimental Results                | 5 min           | 3      |
 | 7. Analysis & Discussion               | 2 min           | 2      |
 | **Q&A**                          | **1 min** | -      |
@@ -650,7 +650,89 @@ ImageNet Features → Plant Disease Features → Disease Classifier
 
 ---
 
-## Slide 19: Experimental Design
+## Slide 19: Model Architecture & Domain Adaptation (Semi-Supervised)
+
+**Content:**
+
+**Teacher-Student Architecture (Experiments 4-5):**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ TEACHER MODEL                                           │
+│ • Architecture: EfficientNet-B0                         │
+│ • Training: PlantVillage only (labeled)                │
+│ • Augmentation: Baseline (minimal)                      │
+│ • Learning Rate: 3e-4                                   │
+│ • Output: PV F1 = 98.9%, Field F1 = 3.1%              │
+└────────────────┬────────────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────────┐
+│ PSEUDO-LABELING                                         │
+│ • Input: Unlabeled field images (3,712 samples)        │
+│ • Process: Teacher inference → confidence scores        │
+│ • Filtering: Keep only high-confidence predictions      │
+│ • Thresholds: T=0.85 (55% retention), T=0.90 (49%),     │
+│              T=0.95 (39% retention)                   │
+│ • Output: 1,445-2,046 pseudo-labeled field images      │
+└────────────────┬────────────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────────┐
+│ STUDENT MODEL                                           │
+│ • Architecture: EfficientNet-B0 (same as teacher)      │
+│ • Initialization: Teacher weights (transfer learning)  │
+│ • Training: PV labeled + pseudo-labeled field          │
+│ • Sampling: 70% PV / 30% pseudo-field per batch        │
+│ • Learning Rate: 1e-4 (lower than teacher)             │
+│ • Augmentation: Lighter on pseudo-labels (reduce noise)│
+└─────────────────────────────────────────────────────────┘
+```
+
+**Domain Adaptation Techniques for Semi-Supervised:**
+
+**1. Confidence-Based Filtering:**
+- Only keep pseudo-labels with confidence ≥ threshold
+- Thresholds tested: 0.85, 0.90, 0.95
+- **Finding:** T=0.95 optimal (quality > quantity)
+- Reduces noise from incorrect teacher predictions
+
+**2. Weight Initialization:**
+- Student initialized from teacher weights
+- Preserves learned features from PV domain
+- Enables efficient adaptation to field domain
+
+**3. Balanced Sampling:**
+- 70% PV (labeled) / 30% pseudo-field per batch
+- Prevents overfitting to noisy pseudo-labels
+- Maintains strong PV performance
+
+**4. Conservative Training:**
+- Lower learning rate (1e-4 vs 3e-4)
+- Lighter augmentation on pseudo-labels
+- Early stopping on PV validation
+- Protects against pseudo-label noise
+
+**5. Threshold Ablation:**
+- Systematic study of quality vs quantity trade-off
+- Tested multiple confidence thresholds
+- Identified optimal balance point
+
+**Key Differences from Supervised:**
+- Uses unlabeled field data (vs labeled)
+- Pseudo-labels from teacher (vs ground truth)
+- Lower learning rate (vs standard)
+- Lighter augmentation (vs aggressive)
+
+**Talking Points:**
+
+- Explain teacher-student architecture clearly
+- Show how pseudo-labeling works
+- Describe domain adaptation techniques specific to semi-supervised
+- Compare to supervised approach
+- Explain why these techniques are needed for semi-supervised
+
+**Visual:** Teacher-student pipeline diagram with pseudo-labeling process
 
 **Content:**
 
@@ -698,7 +780,7 @@ ImageNet Features → Plant Disease Features → Disease Classifier
 
 ---
 
-## Slide 20: Datasets & Evaluation
+## Slide 21: Datasets & Evaluation
 
 **Content:**
 
@@ -736,7 +818,7 @@ ImageNet Features → Plant Disease Features → Disease Classifier
 
 # **SECTION 6: EXPERIMENTAL RESULTS (5 minutes)**
 
-## Slide 21: Results Overview
+## Slide 22: Results Overview
 
 **Content:**
 
@@ -772,7 +854,7 @@ ImageNet Features → Plant Disease Features → Disease Classifier
 
 ---
 
-## Slide 22: Domain Shift Solved
+## Slide 23: Domain Shift Solved
 
 **Content:**
 
@@ -818,7 +900,7 @@ Result: 59.7% F1 ✅ (Useful performance)
 
 ---
 
-## Slide 23: Key Findings
+## Slide 24: Key Findings
 
 **Content:**
 
@@ -860,7 +942,7 @@ Result: 59.7% F1 ✅ (Useful performance)
 
 # **SECTION 7: ANALYSIS & DISCUSSION (2 minutes)**
 
-## Slide 24: Why Supervised Outperformed Semi-Supervised
+## Slide 25: Why Supervised Outperformed Semi-Supervised
 
 **Content:**
 
@@ -914,7 +996,7 @@ Result: 59.7% F1 ✅ (Useful performance)
 
 ---
 
-## Slide 25: Conclusions & Contributions
+## Slide 26: Conclusions & Contributions
 
 **Content:**
 
@@ -956,7 +1038,7 @@ Result: 59.7% F1 ✅ (Useful performance)
 
 # **FINAL SLIDES**
 
-## Slide 26: References
+## Slide 27: References
 
 **Content:**
 
@@ -972,7 +1054,7 @@ Result: 59.7% F1 ✅ (Useful performance)
 
 ---
 
-## Slide 27: Thank You & Questions
+## Slide 28: Thank You & Questions
 
 **Content:**
 
