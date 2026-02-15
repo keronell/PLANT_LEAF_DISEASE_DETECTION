@@ -63,6 +63,3 @@ Place datasets under `data/`:
 | 4.4.1       | Teacher–student          | experiment_4/1_teacher_student_pseudo_labeling            |
 | 4.4.2       | Threshold ablation       | experiment_5_threshold_ablation/1_threshold_ablation      |
 
-## License
-
-See project license file.
