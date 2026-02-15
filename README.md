@@ -17,7 +17,7 @@ This project reproduces experiments on domain shift between controlled laborator
 Place datasets under `data/`:
 
 - **PlantVillage** (`Plant_leaf_diseases_dataset_with_augmentation/`): 61,486 images, 39 classes. [Kaggle](https://www.kaggle.com/datasets/emmarex/plantdisease/data)
-- **Plant_doc**: External field-like images, 27 classes. Download and structure as `data/Plant_doc/train/`, `data/Plant_doc/test/`. [Kaggle] (https://www.kaggle.com/datasets/andresmgs/plantdec)
+- **Plant_doc**: External field-like images, 27 classes. Download and structure as `data/Plant_doc/train/`, `data/Plant_doc/test/`. [Kaggle](https://www.kaggle.com/datasets/andresmgs/plantdec)
 - **FieldPlant** (`FieldPlant_reformatted/`): 5,170 field images. [Kaggle](https://www.kaggle.com/datasets/bloox2/fieldplant) — reformat to folder-per-class structure.
 
 ## Project Structure
