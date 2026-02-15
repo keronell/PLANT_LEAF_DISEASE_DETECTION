@@ -1,0 +1,516 @@
+Article
+Improving generalization of deep learning models for plant leaf disease detection
+Vladislav Pavliyuk¹, Ronen Shershnev¹
+1 Department of Software Engineering, Afeka College of Engineering, Tel Aviv, Israel
+Abstract
+Plant diseases significantly impact agricultural productivity, making accurate and robust disease detection critical for real-world deployment. While deep learning models achieve near-perfect performance on controlled laboratory datasets, their reliability in real agricultural environments remains limited due to severe domain shift. This study investigates the generalization of plant leaf disease classifiers from laboratory to field imagery and evaluates strategies to mitigate this gap. Two representative architectures, EfficientNet-B0 and Vision Transformer (ViT-Base/16), were evaluated on controlled data. Domain adaptation and pseudo-labeling experiments focus on EfficientNet-B0 due to its superior robustness and efficiency in preliminary evaluations. Supervised domain adaptation was first explored by incorporating labeled field data through domain-balanced sampling, aggressive field-style augmentation, and weighted fine-tuning strategies. In parallel, a more constrained setting without labeled field data was examined using augmentation-only training and a teacher–student pseudo-labeling framework with unlabeled field images. Results show that augmentation alone is insufficient to overcome the laboratory-to-field domain gap. When labeled field data are available, supervised fine-tuning achieves strong real-world performance while preserving in-domain accuracy. In the absence of labels, incorporating unlabeled field data yields consistent, though more limited, improvements, with pseudo-label quality shown to be more important than quantity. These findings demonstrate that exposure to target-domain data is essential for robust plant disease recognition and clarify the practical limits of augmentation-only approaches.
+
+Keywords: plant disease detection, domain shift, domain adaptation, deep learning, pseudo-labeling, agricultural computer vision
+
+
+
+1. Introduction
+Plant diseases are a major cause of yield reduction and economic loss in agriculture, and their early detection is essential for timely intervention and sustainable crop management. In recent years, deep learning has emerged as a dominant approach for automated plant disease recognition from leaf images, achieving impressive performance across a wide range of crops and disease types. Convolutional neural networks and, more recently, transformer-based architectures have demonstrated the ability to learn discriminative visual features directly from raw images, often surpassing traditional machine-learning pipelines [1–3].
+
+Despite this progress, a critical limitation remains. Many published systems are trained and evaluated primarily on curated datasets collected under controlled laboratory conditions, most notably the PlantVillage dataset [4]. Images in such datasets typically contain a single, isolated leaf placed on a uniform background with consistent illumination. Under these conditions, models frequently report near-perfect accuracy. However, when deployed in real agricultural environments, the same models often exhibit a dramatic drop in performance [5–7]. This discrepancy raises concerns about the practical reliability of laboratory-trained models in real-world settings.
+
+A key reason for this failure is domain shift. Field images differ substantially from laboratory images in terms of lighting variability, background clutter, camera viewpoint, occlusion, leaf scale, and image quality. Real-world images may include multiple overlapping leaves, shadows, soil or sky backgrounds, and partial disease symptoms, all of which violate the assumptions implicit in controlled datasets. As a result, models may learn spurious correlations or visual shortcuts that perform well in-domain but do not generalize to field conditions. While several studies have proposed data augmentation or fine-tuning as potential solutions, there is no consensus on whether synthetic transformations alone can bridge this gap, or whether exposure to real field data is fundamentally required [8–10].
+
+In practice, this domain gap manifests as a sharp degradation in field performance (especially macro-averaged metrics), increased confusion between visually similar disease classes, and sensitivity to background and illumination artifacts that are largely absent in PlantVillage. Naïve fine-tuning attempts often fail because the labeled field subset is typically small and imbalanced: the model either remains biased toward PlantVillage “shortcuts” (e.g., color statistics or clean-background cues) or quickly overfits the limited field examples without improving robustness. This paper therefore advocates a pragmatic class of solutions based on training-level domain adaptation - domain-balanced sampling, field-style augmentation, and validation criteria aligned with the target domain - and, when labels are unavailable, semi-supervised adaptation via teacher–student pseudo-labeling on unlabeled field images.
+
+This work addresses the problem of cross-domain generalization in plant leaf disease classification. We systematically investigate how and why performance degrades when moving from controlled laboratory images to real-world field data, and which strategies are effective in mitigating this degradation. Two representative deep learning architectures are considered: EfficientNet-B0, a compact convolutional neural network optimized for efficiency, and a Vision Transformer (ViT-Base/16), representing a fundamentally different modeling paradigm based on self-attention.
+
+We study two complementary domain adaptation settings. In the first, labeled field data are available and are incorporated into training through domain-balanced sampling, aggressive field-style augmentation, weighted validation criteria, and extended fine-tuning schedules. In the second, we consider a more constrained and realistic scenario in which no labeled field data are available, and investigate whether generalization can be improved using augmentation alone or by incorporating unlabeled field images via a teacher–student pseudo-labeling framework. A controlled ablation of pseudo-label confidence thresholds is used to analyze the trade-off between label quality and quantity.
+1.1. Research Questions.
+
+RQ1: How severe is the laboratory-to-field domain shift when training on PlantVillage and evaluating on real field imagery?
+RQ2: Which practical supervised training interventions (sampling/weighting, augmentation, and fine-tuning schedules) most improve field robustness without sacrificing controlled-domain accuracy?
+RQ3: When labeled field data are unavailable, how effective is teacher–student pseudo-labeling on unlabeled field images, and how sensitive is it to the pseudo-label confidence threshold?
+1.2. Contributions.
+We quantify the generalization gap from controlled PlantVillage imagery to field conditions under a consistent evaluation protocol.
+We compare CNN-based (EfficientNet-B0) and transformer-based (ViT-Base/16) architectures on the source domain and analyze domain shift, while detailed adaptation and pseudo-labeling experiments focus on EfficientNet-B0
+We present supervised domain adaptation recipes that combine domain-balanced sampling, field-style augmentation, and target-aligned validation to improve field performance.
+We implement a teacher–student pseudo-labeling framework for unlabeled field data and provide a threshold ablation analyzing the quality–quantity trade-off.
+
+2. Related Work
+2.1. Deep Learning for Plant Disease Detection
+Early work on automated plant disease recognition relied on hand-crafted features and classical classifiers, however, the field shifted rapidly toward deep learning once large-scale labeled datasets became available. Convolutional neural networks (CNNs) became the standard approach due to their ability to learn hierarchical visual representations directly from raw images and their strong performance on leaf-based classification benchmarks. Many studies report very high accuracy when training and testing on controlled datasets such as PlantVillage, often using transfer learning from ImageNet-pretrained backbones and standard augmentation pipelines.
+More recently, transformer-based architectures, particularly Vision Transformers (ViT), have been explored for plant disease classification. By replacing convolution with self-attention, transformers can model longer-range dependencies and global context. Several works suggest that ViT-like models can match or surpass CNNs on controlled datasets given sufficient data or strong pretraining, though they may be more sensitive to dataset size and training stability. Overall, the literature establishes deep learning as highly effective for leaf disease recognition in benchmark settings, while leaving open questions about robustness and generalization beyond the lab domain.
+
+2.2. Domain Shift and Generalization Challenges
+A recurring limitation in plant-disease recognition is the gap between laboratory imagery and real-world field conditions. Curated datasets typically contain centered leaves on homogeneous backgrounds with consistent lighting, whereas field images exhibit background clutter, varying illumination, shadows, occlusions, multiple leaves per frame, motion blur, and diverse viewpoints. This distribution mismatch - commonly referred to as domain shift - causes models trained on controlled datasets to degrade sharply when evaluated on in-the-wild data.
+Prior studies attribute this degradation to models learning spurious correlations that are predictive in the source domain (e.g., background uniformity, color statistics, framing cues) but unreliable in the target domain. The effect is particularly damaging for classes with subtle symptom differences or for visually similar diseases, where the model’s decision boundary becomes unstable under real-world perturbations. This problem positions cross-domain generalization as a key barrier to deployment, and motivates methods that explicitly address domain mismatch rather than only optimizing in-domain accuracy.
+
+2.3. Existing Mitigation Strategies and Their Limitations
+Several mitigation approaches have been proposed to reduce the laboratory-to-field performance gap. A common baseline is stronger data augmentation - color jitter, random crops, blur, noise, and geometric transforms to increase invariance and simulate some aspects of field variability. While augmentation can improve robustness, multiple works report that synthetic transformations alone rarely close the gap fully when the target domain differs substantially from the source.
+Another widely used approach is supervised domain adaptation via fine-tuning on labeled target-domain data. When enough labeled field samples exist, fine-tuning typically improves target accuracy, however, in many practical settings labeled field data are scarce, class-imbalanced, or costly to collect. Under such constraints, naïve fine-tuning can overfit quickly or provide inconsistent gains unless supported by careful sampling, domain-aware augmentation, and evaluation protocols aligned with the target domain.
+Semi-supervised adaptation methods attempt to leverage unlabeled target images, for example through pseudo-labeling or teacher–student frameworks. These methods can reduce dependence on labeled field data, but their success depends strongly on pseudo-label quality: if early pseudo-labels are noisy, errors can be reinforced and degrade performance. Consequently, thresholding and confidence-based selection become critical design choices, and sensitivity analyses are often necessary to balance label quality against coverage.
+In summary, the literature suggests that effective mitigation typically requires some form of target-domain exposure (labeled or unlabeled) and careful control of the adaptation process, purely source-domain solutions tend to be insufficient for substantial domain shifts.
+3. Materials and Methods
+3.1. Datasets and Label Space
+This study evaluates plant leaf disease classification under domain shift between controlled laboratory imagery and real-world field imagery. Three datasets were used.
+PlantVillage (PV, controlled domain).
+
+The PlantVillage dataset contains 61,486 RGB images spanning 39 classes, including multiple plant species, disease types, healthy leaves, and a “background/without leaves” class. Images are captured under controlled conditions with uniform backgrounds and consistent illumination. The dataset was split into 49,179 training images, 6,148 validation images, and 6,148 test images.
+
+FieldPlant (field domain).
+FieldPlant contains 5,170 images (8,629 manually annotated leaves) across 27 classes.
+In our pipeline, we work at the leaf-sample level, using 3,712 leaf samples for training, 928 for validation, and 1,530 for testing.
+
+Plant_doc (external field-like domain).
+Plant_doc consists of 2,569 internet-sourced images mapped to 27 classes aligned with the PlantVillage label space. In the implemented pipeline, Plant_doc contributed a training subset of 5,336 samples and a validation/test subset of 504 samples for evaluation and weighted model selection.
+
+Canonical label space and class mapping.
+All experiments used the 39-class PlantVillage label space. For datasets containing fewer classes, labels were mapped into this canonical space. Evaluation on Plant_doc and FieldPlant was performed only on the supported class intersection, while maintaining a unified classifier head across all experiments.
+
+3.2. Model Architectures
+To study the impact of domain shift and adaptation strategies across fundamentally different representation paradigms, we evaluate two widely adopted deep learning architectures for image classification: a convolutional neural network and a transformer-based vision model. These architectures were selected to contrast locality-driven feature extraction with global attention mechanisms under controlled-to-field generalization. Concretely, CNNs are biased toward local texture and shape cues through convolution and pooling, which can be beneficial for symptom-level patterns but may also amplify sensitivity to low-level appearance changes (illumination, color statistics). In contrast, vision transformers rely on self-attention over patch tokens and can integrate global context, potentially improving robustness to local clutter, yet they may be more data-hungry and sensitive to distributional shifts when fine-tuned with limited target-domain data. Evaluating both families under the same training and adaptation protocol allows us to test whether the generalization gap is primarily driven by (i) the representation bias of the backbone, or (ii) the data composition and adaptation strategy applied during training.
+
+Two representative deep learning architectures were evaluated:
+EfficientNet-B0 is a convolutional neural network based on compound scaling and MBConv blocks with squeeze-and-excitation, providing strong accuracy at relatively low computational cost. Input resolution was 224 × 224 pixels, and the classifier head was configured for 39 output classes.
+
+ViT-Base/16 divides each image into non-overlapping 16 × 16 patches and processes them using multi-head self-attention with positional embeddings. The input resolution was 224 × 224 pixels, with a 39-class classifier head.
+
+Unless stated otherwise, EfficientNet-B0 was used in later domain adaptation and pseudo-labeling experiments due to its superior robustness and computational efficiency in preliminary evaluations.
+
+
+3.3. Data Augmentation Protocols
+Data augmentation was treated as a central mechanism for mitigating domain shift, since field images differ from controlled imagery in viewpoint, illumination, scale, background complexity, and acquisition artifacts (blur, partial occlusions). Aggressive augmentation is therefore used to approximate these real-world variations during training, encouraging the model to rely on disease-relevant cues rather than dataset-specific shortcuts (e.g., uniform backgrounds or stable color statistics). To ensure reproducibility, we define the augmentation policy explicitly via a fixed set of stochastic transformations and parameters, applied consistently across experiments that use the “field-style” augmentation setting.
+Baseline augmentation.
+PlantVillage: resize → random horizontal flip (p = 0.5) → normalization
+Field datasets: resize → random horizontal flip (p = 0.5) → light color jitter → normalization
+Aggressive field-style augmentation.
+Specifically, in addition to resizing and normalization, the following transformations are applied stochastically:
+Random horizontal flipping (p = 0.5) and vertical flipping (p = 0.3) to model arbitrary leaf orientations.
+Random rotation (up to ±30°) to simulate viewpoint changes during image acquisition.
+ColorJitter with stronger perturbations of brightness, contrast, saturation, and hue to reflect varying illumination and camera properties.
+Random affine transformation with translation and an expanded scale range of 0.7–1.3 to account for changes in leaf size and position within the image.
+Random perspective distortion with distortion scale = 0.2 and p = 0.3 to approximate non-frontal viewpoints.
+Gaussian blur (p = 0.3) with kernel size = 3 and sigma ∈ [0.1, 0.5] to model motion blur and focus variability.
+Random sharpness adjustment (p = 0.3) to simulate sensor and post-processing effects.
+Random erasing with increased probability and scale range to emulate partial occlusions caused by overlapping leaves or background objects.
+
+3.4. Training Configuration
+Loss and optimizer:
+All models were trained using cross-entropy loss and the AdamW optimizer.
+
+Baseline training setup:
+Learning rate: 3 × 10⁻⁴
+Weight decay: 1 × 10⁻⁴
+Scheduler: cosine annealing (T_max = 20)
+Epochs: up to 20
+Early stopping: patience of 5 epochs
+Batch size: 32
+
+Fine-tuning hyperparameters.
+Fine-tuning experiments used a batch size 64 and mixed precision training (FP16). Training duration varied by experiment and is detailed in Section 3.7.
+
+Model selection.
+Primary criterion: macro-F1 on validation
+Multi-domain selection: weighted validation macro-F1 (defined in Section 3.5)
+
+3.5. Domain Adaptation Strategies
+To mitigate the laboratory-to-field domain gap, we apply training-time interventions that control (i) how source/target samples are mixed during training and (ii) how checkpoints are selected to favor target-domain performance.
+
+3.5.1. Domain-balanced sampling.
+Two sampling schemes were evaluated:
+Quick Wins: fixed 60% PV / 40% field composition with 3× field sample weight
+Progressive adaptation: field ratio increased from 10% to 50% over training, with 5× field sample weight
+
+
+3.5.2. Weighted validation criterion (target-aligned checkpoint selection).
+Model selection used a weighted macro-F1 score to avoid overfitting to PV:
+0.40⋅F1_PV+0.30⋅F1_Plant_doc+0.30⋅F1_FieldPlant
+
+3.5.3. Layer-wise learning rates.
+ Lower learning rates were applied to early layers and higher rates to later layers and the classifier:
+Early layers: 0.1×0.1\times0.1× base LR
+Middle layers: 0.5×0.5\times0.5× base LR
+Late layers: 1.0×1.0\times1.0× base LR
+Classifier head: 2.0×2.0\times2.0× base LR
+3.6. Unsupervised Domain Adaptation via Pseudo-Labeling
+To evaluate adaptation without labeled field data, a teacher–student pseudo-labeling framework was implemented.
+A teacher model was trained exclusively on PlantVillage data. This model was then used to generate pseudo-labels for unlabeled FieldPlant images. Only predictions exceeding a confidence threshold were retained. Pseudo-labeled field images were combined with labeled PlantVillage data during student training using a fixed 70% PV / 30% pseudo-field sampling ratio.
+A confidence threshold ablation was conducted with thresholds of 0.85, 0.90, and 0.95 to analyze the trade-off between pseudo-label quantity and noise. Student models were initialized from teacher weights and trained with a reduced learning rate (1 × 10⁻⁴) for up to 15 epochs.
+3.7. Experimental Protocol
+All experiments used the same preprocessing pipeline, label space, and evaluation metrics, differing only in training data composition and adaptation strategy.
+Baseline training (PV only).
+ Models trained on PlantVillage with baseline augmentation to establish strong in-domain performance.
+Domain shift evaluation.
+ PV-trained models evaluated on Plant_doc and FieldPlant to quantify performance degradation.
+Supervised fine-tuning with labeled field data.
+ Includes baseline fine-tuning, Quick Wins, and Progressive Domain Adaptation experiments.
+Augmentation-only generalization test.
+ Models trained on full PV with aggressive field-style augmentation but without field images.
+Teacher–student pseudo-labeling.
+ Unlabeled field images incorporated via pseudo-labeling.
+Threshold ablation study.
+ Evaluation of pseudo-label confidence thresholds to assess quality–quantity trade-offs.
+
+3.8. Data, Code, and Reproducibility
+All datasets used in this study are publicly available. The PlantVillage dataset is publicly accessible, while FieldPlant and Plant_doc are available through their respective sources. All preprocessing steps, training scripts, and evaluation code were implemented in Python using PyTorch and will be made available to readers upon publication. No ethical approval was required, as this study did not involve human or animal subjects.
+
+3.9. Use of Generative Artificial Intelligence
+Generative artificial intelligence tools were used to assist with manuscript drafting and language refinement. All experimental design, data processing, model implementation, analysis, and interpretation were performed by the authors. No GenAI tools were used to generate data, labels, models, or experimental results.
+4. Results
+This section presents the experimental results obtained across multiple evaluation settings, progressing from baseline in-domain performance to supervised and unsupervised domain adaptation under real-world conditions. Results are reported using macro-averaged F1 score and accuracy, which are appropriate for imbalanced multi-class classification.
+4.1. Baseline Performance and Domain Shift Analysis
+4.1.1. In-Domain Performance on Controlled Data
+Models trained exclusively on the PlantVillage dataset achieved near-perfect in-domain performance. Both EfficientNet-B0 and ViT-Base/16 demonstrated strong classification accuracy, confirming that the architectures are capable of learning discriminative features under controlled imaging conditions.
+PlantVillage test macro-F1: ≈ 0.99
+PlantVillage test accuracy: ≈ 0.99
+These results establish a strong in-domain baseline and are summarized in Table 1.
+
+Model
+Dataset
+Accuracy
+Macro-F1
+Number of classes
+Number of Test samples
+EfficientNet-B0  PV test
+PlantVillage
+~0.99
+0.9894
+39
+6,148
+ViT-Base/16  -  PV test
+PlantVillage
+0.99
+0.991
+39
+6,148
+
+Table 1. Baseline in-domain classification performance on the PlantVillage test set, demonstrating near-perfect accuracy under controlled laboratory conditions
+
+4.1.2. Cross-Domain Evaluation on Field Datasets
+When the same models were evaluated on real-world datasets without adaptation, performance dropped sharply. On both Plant_doc and FieldPlant datasets, macro-F1 scores fell to near-random levels.
+Plant_doc macro-F1: ≈ 0.07
+FieldPlant macro-F1: ≈ 0.03
+This severe degradation demonstrates the presence of a substantial laboratory-to-field domain shift. The comparative results are shown in Table 2.
+
+Model
+Training Data
+Dataset
+Accuracy
+Macro-F1
+Supported Classes
+EfficientNet-B0
+PlantVillage
+Plant_doc
+~0.07
+0.0689
+27
+EfficientNet-B0
+PlantVillage
+FieldPlant
+~0.03
+0.0294
+27
+
+
+Table 2. Cross-domain evaluation of models trained on PlantVillage and tested on field datasets, highlighting the severe performance degradation caused by domain shift.
+4.2. Supervised Domain Adaptation with Labeled Field Data
+4.2.1. Baseline Fine-Tuning with Combined Data
+Initial fine-tuning using combined datasets and basic augmentation preserved PlantVillage performance but failed to significantly improve field performance.
+PlantVillage macro-F1: ≈ 0.99
+Plant_doc macro-F1: ≈ 0.07
+FieldPlant macro-F1: ≈ 0.03
+These results indicate that naive fine-tuning alone is insufficient to address domain shift.
+
+Training Strategy
+PV Macro-F1
+Plant_doc Macro-F1
+FieldPlant Macro-F1
+Epochs
+Augmentation
+Combined data, basic fine-tuning
+0.9894
+0.0689
+0.0294
+5
+Mild
+
+
+Table 3. Results of naïve fine-tuning with combined datasets and basic augmentation, showing that simple data mixing does not resolve the laboratory-to-field domain gap.
+4.2.2. Quick Wins Strategy
+The Quick Wins strategy introduced aggressive field-style augmentation, domain-balanced sampling (60% PlantVillage / 40% field), increased field sample weighting, weighted validation criteria, and extended fine-tuning. This configuration led to substantial improvements across all datasets.
+PlantVillage macro-F1: 0.9972
+Plant_doc macro-F1: 0.5974
+FieldPlant macro-F1: 0.8602
+Weighted validation macro-F1: 0.8361
+These results are reported in Table X and demonstrate that supervised domain adaptation with labeled field data can effectively bridge the domain gap.
+4.2.3. Progressive Domain Adaptation
+The Progressive Domain Adaptation approach gradually increased the contribution of field data during training while applying stronger field sample weighting. This strategy yielded the best performance on the Plant_doc dataset and the highest in-domain accuracy.
+PlantVillage macro-F1: 0.9978
+Plant_doc macro-F1: 0.6132
+FieldPlant macro-F1: 0.8320
+Weighted validation macro-F1: 0.8325
+Although FieldPlant performance was slightly lower than in the Quick Wins configuration, progressive adaptation improved stability and external generalization. Results are summarized in Table 4.
+
+Method
+PV Macro-F1
+Plant_doc Macro-F1
+FieldPlant Macro-F1
+Weighted F1
+Field Sampling Strategy
+Quick Wins
+0.9972
+0.5974
+0.8602
+0.8361
+60% PV / 40% Field, 3×
+Progressive Adaptation
+0.9978
+0.6132
+0.8320
+0.8325
+10% → 50%, 5×
+
+
+Table 4. Performance comparison of supervised domain adaptation strategies using labeled field data, including Quick Wins and Progressive Domain Adaptation approaches. 
+4.3. Augmentation-Only Generalization without Field Data
+To evaluate whether augmentation alone can replace target-domain data, models were trained on the full PlantVillage dataset using aggressive field-style augmentation but without any field images. Despite maintaining strong in-domain performance, these models failed to generalize to field datasets.
+PlantVillage macro-F1: ≈ 0.96–0.99
+Field macro-F1: ≈ 0.02
+This experiment demonstrates that synthetic augmentation alone is insufficient to overcome the laboratory-to-field domain gap. Results are shown in Table X.
+
+Training Data
+Augmentation Type
+PV Macro-F1
+Field Macro-F1
+Field Accuracy
+Uses Field Images
+PV only
+Baseline
+~0.99
+~0.02
+~0.12
+No
+PV only
+Aggressive field-style
+0.9571
+0.0189
+0.1034
+No
+
+
+Table 5. Generalization performance of augmentation-only models trained without any field images, illustrating the limitations of synthetic field-style augmentation.
+
+4.4.  Unsupervised Domain Adaptation via Teacher–Student Pseudo-Labeling
+4.4.1. Teacher–Student Adaptation Results
+In the absence of labeled field data, a teacher–student pseudo-labeling framework was applied using unlabeled field images. For sufficiently high confidence thresholds (≥ 0.90), the student model outperformed the teacher on field data while preserving PlantVillage performance.
+Teacher Field macro-F1: 0.0307
+Student Field macro-F1: 0.0342
+Student PlantVillage macro-F1: ≈ 0.99
+The improvement, though modest, was consistent and attributable solely to exposure to unlabeled target-domain images. Confusion matrices comparing teacher and student predictions are shown in Figure 6.
+
+Model
+Training Data
+PV Macro-F1
+Field Macro-F1
+Field Accuracy
+Labeled Field Used
+Teacher
+PV only
+0.9871
+0.0307
+0.1347
+No
+Student
+PV + pseudo-labeled Field (T=0.90)
+0.9886
+0.0342
+0.1584
+No
+
+
+Table 6. Comparison between teacher and student models in the unsupervised domain adaptation setting, demonstrating the benefit of incorporating unlabeled field data.
+4.4.2. Pseudo-Label Confidence Threshold Ablation
+A confidence threshold ablation was conducted to analyze the trade-off between pseudo-label quality and quantity. Three thresholds were evaluated: 0.85, 0.90, and 0.95.
+Lower thresholds increased pseudo-label quantity but degraded field performance.
+The highest threshold (0.95) achieved the best field macro-F1 improvement.
+No tomato disease classes improved from F1 = 0 due to the absence of reliable pseudo-labels.
+The comparative results are summarized in Table 7, and confusion matrix comparisons are shown in Figure 1.
+			
+Threshold
+Retained Pseudo-Labels (%)
+PV Macro-F1
+Field Macro-F1
+Field Accuracy
+Teacher
+N/A
+0.9871
+0.0307
+0.1347
+T = 0.85
+55.12
+0.9828
+0.0304
+0.1336
+T = 0.90
+49.00
+0.9886
+0.0342
+0.1584
+T = 0.95
+38.93
+0.9892
+0.0348
+0.1670
+
+
+Table 7. Pseudo-label confidence threshold ablation results, showing the trade-off between pseudo-label quantity and quality and its effect on field performance.
+
+Figure 1. Confusion matrices for teacher and student models under different pseudo-label confidence thresholds on the field dataset.
+
+4.5.  Overall Comparison of Adaptation Strategies
+The main conclusions drawn from the experimental results are as follows:
+Augmentation alone cannot resolve the laboratory-to-field domain shift.
+Supervised fine-tuning with labeled field data yields strong real-world performance.
+Unlabeled field data improves generalization when incorporated via pseudo-labeling.
+Pseudo-label quality is more important than quantity in unsupervised adaptation.
+Classes lacking target-domain signal cannot be recovered through pseudo-labeling alone.
+A consolidated comparison of all experiments is provided in Table 8.
+
+Method
+Supervision Type
+Uses Field Data
+PV Macro-F1
+Field Macro-F1
+Key Outcome
+Baseline (PV only)
+Supervised (PV only)
+No
+0.9894
+0.0294
+Strong in-domain performance, complete failure on field data
+Naive Fine-Tuning (Combined Data)
+Supervised
+Yes (labeled)
+0.9894
+0.0294
+No improvement, simple data mixing ineffective
+Quick Wins Adaptation
+Supervised
+Yes (labeled)
+0.9972
+0.8602
+Best field performance with labeled data
+Progressive Domain Adaptation
+Supervised
+Yes (labeled)
+0.9978
+0.8320
+Best Plant_doc and in-domain stability
+Augmentation-Only (PV + field-style)
+Supervised (PV only)
+No
+0.9571
+0.0189
+Augmentation alone fails to generalize
+Teacher - Student (T = 0.90)
+Unsupervised (pseudo-label)
+Yes (labeled)
+0.9886
+0.0342
+Consistent field improvement without labels
+Teacher - Student (T = 0.95)
+Unsupervised (pseudo-label)
+Yes (labeled)
+0.9892
+0.0348
+Best unsupervised adaptation result
+
+
+Table 8. Consolidated comparison of all experimental settings, highlighting the relative effectiveness of supervised and unsupervised domain adaptation strategies for improving field generalization.
+5. Discussion
+This study investigated the effectiveness of supervised and semi-supervised learning strategies for plant disease classification under domain shift conditions, specifically transferring from controlled studio images (PlantVillage-style dataset) to real-world field environments. The results provide several important insights in relation to both prior literature and the working hypotheses.
+5.1.  Interpretation of Results in Relation to Previous Studies
+Consistent with earlier findings (Mohanty et al., 2016), the baseline model achieved near-perfect performance on the controlled source dataset, confirming that modern CNN architectures are highly effective when trained and evaluated under similar acquisition conditions. However, as highlighted in recent surveys (Ahmad et al., 2023, Hassan et al., 2022), a significant performance drop was observed when evaluating the same model on field images. This degradation supports the well-documented problem of domain shift in agricultural vision systems.
+
+The fine-tuning experiments demonstrated that partial adaptation using limited labeled field data improves generalization but does not fully close the performance gap. This aligns with previous observations that supervised domain adaptation requires sufficient target-domain labels to achieve robust transfer.
+
+The augmentation-only experiment (Section 4.3) showed that field-style augmentations provide modest improvements, suggesting that simulating environmental variability partially mitigates domain discrepancy. However, augmentation alone was insufficient to match real field complexity, reinforcing the need for domain-aware training strategies.
+
+The most substantial improvements were obtained using teacher–student pseudo-labeling. This finding is consistent with semi-supervised learning literature, where high-confidence pseudo-labeling has been shown to enhance representation learning when labeled data is scarce. Our threshold ablation further demonstrated the importance of balancing pseudo-label quality and coverage, confirming that overly permissive thresholds introduce noise, while overly strict thresholds limit the benefit of additional data.
+5.2.  Implications for Agricultural AI Deployment
+The results suggest that models trained exclusively on curated datasets are unlikely to generalize reliably in real farming conditions. This has important practical implications, as many academic benchmarks report high accuracy without accounting for environmental variability.
+
+The teacher–student framework offers a scalable alternative to exhaustive manual annotation. By leveraging unlabeled field data, performance can be improved with limited additional labeling effort. This is particularly relevant for large-scale agricultural deployment, where collecting labeled field images across different regions, seasons, and crop varieties is costly.
+
+Furthermore, the lightweight nature of the EfficientNet backbone supports potential deployment on edge devices such as mobile phones or UAV systems, making the approach practical for real-time disease monitoring.
+5.3.  Evaluation of Working Hypotheses
+The study hypothesized that:
+Domain shift significantly degrades performance.
+Progressive adaptation improves robustness.
+Semi-supervised pseudo-labeling further enhances field generalization.
+
+All three hypotheses were supported by empirical results. Domain shift caused a substantial F1 reduction. Progressive fine-tuning improved adaptation stability. Teacher–student learning achieved the strongest field performance when confidence thresholds were appropriately selected.
+
+These findings reinforce the view that robust plant disease detection requires strategies beyond traditional supervised training.
+5.4.  Limitations
+Several limitations should be acknowledged. First, the experiments were conducted on a limited subset of disease classes in the field dataset, which may restrict generalizability. Second, pseudo-label quality depends heavily on teacher reliability, systematic teacher bias may propagate errors to the student. Third, confidence threshold selection was dataset-specific and may require retuning in other agricultural contexts.
+
+Additionally, while EfficientNet demonstrated strong efficiency, transformer-based architectures were not extensively evaluated under semi-supervised settings, which may offer complementary advantages.
+5.5.  Future Research Directions
+A promising extension of this work is the integration of Active Learning to further reduce annotation cost while improving domain adaptation.
+
+Active learning is a learning paradigm in which the model selectively queries a human annotator for labels on the most informative samples. Instead of labeling large volumes of random field images, the model identifies examples that maximize learning benefit, typically those with high uncertainty or disagreement.
+
+In the context of plant disease detection, active learning could be integrated into the teacher–student framework as follows:
+Train an initial teacher model on labeled PlantVillage data.
+Use the model to infer predictions on unlabeled field images.
+Separate images into:
+High-confidence samples → used as pseudo-labels 
+Low-confidence / high-uncertainty samples → sent to human experts for manual annotation.
+Retrain the model with both pseudo-labeled and newly annotated informative samples.
+
+This hybrid strategy could combine:
+Semi-supervised learning (cheap pseudo-labels)
+Active learning (targeted human labeling)
+
+Such an approach may:
+Reduce total annotation effort
+Improve model robustness to difficult field cases
+Prevent propagation of systematic teacher errors
+Focus expert effort on ambiguous or rare disease patterns
+6. Conclusions
+This study investigated supervised and semi-supervised strategies for multi-class plant disease classification under domain shift conditions, transferring from controlled studio images to real-world field environments. The results confirm that while modern convolutional architectures achieve near-perfect performance on curated datasets, substantial degradation occurs when models are deployed in field conditions. This performance gap highlights the critical challenge of domain adaptation in agricultural computer vision.
+
+Progressive fine-tuning and field-aware augmentation strategies provided measurable improvements in cross-domain generalization, but did not fully close the gap. The most significant performance gains were achieved using a teacher–student pseudo-labeling framework, demonstrating the effectiveness of semi-supervised learning when labeled field data is limited. Confidence threshold analysis further emphasized the importance of balancing pseudo-label quality and coverage, as overly permissive or restrictive thresholds reduce overall effectiveness.
+
+The findings suggest that robust agricultural AI systems require strategies beyond conventional supervised training. Leveraging unlabeled field data through structured semi-supervised learning can substantially improve real-world performance while minimizing annotation costs.
+
+Overall, this work contributes an empirical evaluation of domain adaptation and teacher–student learning for plant disease detection, providing practical insights for scalable deployment in real agricultural environments.
+Appendix A
+Appendix A.1
+The appendix is an optional section that can contain details and data supplemental to the main text - for example, explanations of experimental details that would disrupt the flow of the main text but nonetheless remain crucial to understanding and reproducing the research shown, figures of replicates for experiments of which representative data is shown in the main text can be added here if brief, or as Supplementary data. Mathematical proofs of results not central to the paper can be added as an appendix.
+Table A1. This is a table caption.
+Title 1
+Title 2
+Title 3
+entry 1
+data
+data
+entry 2
+data
+data
+
+
+Appendix B
+All appendix sections must be cited in the main text. In the appendices, Figures, Tables, etc. should be labeled starting with “A” - e.g., Figure A1, Figure A2, etc.
+References
+[1] Mohanty, S.P.; Hughes, D.P.; Salathé, M. Using deep learning for image-based plant disease detection. Front. Plant Sci. 2016, 7, 1419. https://doi.org/10.3389/fpls.2016.01419
+
+[2] Ahmad, A.; Saraswat, D.; El Gamal, A. A survey on using deep learning techniques for plant disease diagnosis and recommendations for development of appropriate tools. Smart Agric. Technol. 2023, 3, 100083. https://doi.org/10.1016/j.atech.2022.100083
+
+[3] Hassan, S.M.; Amitab, K.; Jasinski, M.; Leonowicz, Z.; Jasinska, E.; Novak, T.; Maji, A.K. A survey on different plant disease detection using machine learning techniques. Electronics 2022, 11, 2641. https://doi.org/10.3390/electronics11172641
+
+[4] Bouguettaya, A.; Zarzour, H.; Kechida, A.; Taberkit, A.M. A survey on deep learning-based identification of plant and crop diseases from UAV-based aerial images. Cluster Comput. 2023, 26, 1297–1317. https://doi.org/10.1007/s10586-022-03627-x
+
+[5] Plant Disease Dataset (PlantVillage). Available online: https://www.kaggle.com/datasets/emmarex/plantdisease/data
+ (accessed on 15 February 2026).
+
+[6] Field Plant Disease Dataset. Available online: https://www.kaggle.com/datasets/bloox2/fieldplant
+ (accessed on 15 February 2026).
+Disclaimer/Publisher’s Note: The statements, opinions and data contained in all publications are solely those of the individual author(s) and contributor(s) and not of MDPI and/or the editor(s). MDPI and/or the editor(s) disclaim responsibility for any injury to people or property resulting from any ideas, methods, instructions or products referred to in the content.

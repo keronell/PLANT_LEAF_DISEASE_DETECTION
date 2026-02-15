@@ -1,8 +1,3 @@
-# Data Labeling
+# Data Preparation
 
-This folder contains notebooks and scripts related to data preparation and labeling.
-
-## Files
-
-- **1_data_labeling.ipynb**: Notebook for labeling and organizing the plant leaf disease datasets. This includes data preprocessing, label mapping, and dataset organization.
-
+**1_data_labeling.ipynb**: Builds `metadata/label_mapping.json` (39-class canonical labels) and `metadata/dataset_index.json` (train/val/test splits). Run first from project root.

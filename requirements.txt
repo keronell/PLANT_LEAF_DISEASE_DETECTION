@@ -1,0 +1,9 @@
+torch>=1.12
+torchvision
+timm
+scikit-learn
+Pillow
+pandas
+matplotlib
+seaborn
+numpy
